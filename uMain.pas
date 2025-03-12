@@ -39,6 +39,7 @@ type
     btRollback: TButton;
     btCommit: TButton;
     btRollbackRet: TButton;
+    cbEmbeded: TCheckBox;
     procedure btExecuteQueryClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -69,6 +70,7 @@ type
     //To emulate key storage
     ActiveKeyName       :ANSIString;
     ActiveKeyValue      :TCryptKeyValue;
+    procedure setupConnection(var FDPhysFBDriverLink1 :TFDPhysFBDriverLink; var FDConnection1 :TFDConnection);
 
     procedure LogMessage(AMsg:String);
     procedure LogMessageNoDate(AMsg:String);
@@ -90,10 +92,24 @@ implementation
 
 { TForm1 }
 procedure TfmMain.FormCreate(Sender: TObject);
+var strErrMst:String;
 begin
   FDPhysFBDriverLink1 :=TFDPhysFBDriverLink.Create(self);
   FDPhysFBDriverLink1.VendorLib := FDCP.LibraryName;
-  FDPhysFBDriverLink1.Release;
+  try
+    FDPhysFBDriverLink1.Release;
+  except
+    on E:Exception do begin
+      strErrMst := 'Error, can''t execute "FDPhysFBDriverLink1.Release;" : '+E.Message;
+      LogMessage(strErrMst);
+      MessageBox(0,
+        PWideChar(strErrMst),
+        'Crypt Error!' ,
+        MB_ICONERROR or MB_OK or MB_SETFOREGROUND or MB_TOPMOST or MB_APPLMODAL);
+    end;
+  end;
+
+
   FDConnection1:=TFDConnection.Create(self);
   FDTransaction1:=TFDTransaction.Create(self);
 
@@ -146,6 +162,8 @@ procedure TfmMain.LogMessageNoDate(AMsg:String);
 begin
   mResult.Lines.Add(AMsg);
 end;
+
+
 
 
 procedure TfmMain.FDConnection1BeforeConnect(Sender: TObject);
@@ -335,45 +353,9 @@ begin
     try
       FDPhysFBDriverLink1 :=TFDPhysFBDriverLink.Create(ParentObj);
       try
-        try
-          FDPhysFBDriverLink1.VendorLib := FDCP.LibraryName;
-          FDPhysFBDriverLink1.Release;
-        except
-          on E:Exception do begin
-            strErrMst := 'Error, can''t execute "FDPhysFBDriverLink1.Release;" : '+E.Message;
-            LogMessage(strErrMst);
-            MessageBox(0,
-              PWideChar(strErrMst),
-              'Crypt Error!' ,
-              MB_ICONERROR or MB_OK or MB_SETFOREGROUND or MB_TOPMOST or MB_APPLMODAL);
-          end;
-        end;
-
         FDConnection1:=TFDConnection.Create(ParentObj);
         try
-          FDConnection1.LoginPrompt := False;
-          FDConnection1.DriverName := 'FB';
-          FDConnection1.Params.Clear;
-          FDConnection1.Params.Add('DriverID=FB');
-
-          if FDCP.GetFullServerName <>'' then begin
-            //this must be like: 'Server=127.0.0.1/3050:crypt'
-            FDConnection1.Params.Add('Server='+FDCP.GetFullServerName);
-            FDConnection1.Params.Add('Protocol=TCPIP');
-          end;
-          FDConnection1.Params.Add('Database='+FDCP.DBFileName);
-          FDConnection1.Params.Add('User_Name='+FDCP.UserName);
-          FDConnection1.Params.Add('Password='+FDCP.Password);
-          FDConnection1.Params.Add('RoleName='+FDCP.RoleName);
-          FDConnection1.Params.Add('CharacterSet='+FDCP.Charset);
-          FDConnection1.Params.Add('SQLDialect='+FDCP.Charset);
-          FDConnection1.Params.Add('ExtendedMetadata=False');
-          FDConnection1.UpdateOptions.LockWait := False;
-          FDConnection1.ResourceOptions.AutoConnect:=true;
-          FDConnection1.ResourceOptions.AutoReconnect:=true;
-
-          FDConnection1.BeforeConnect:=FDConnection1BeforeConnect;
-
+          setupConnection(FDPhysFBDriverLink1, FDConnection1);
 
           FDTransaction1 := TFDTransaction.Create(ParentObj);
           try
@@ -460,6 +442,7 @@ var
   FDConnection1       :TFDConnection;
   FDTransaction1      :TFDTransaction;
   quCheckQuery        :TFDQuery;
+  strErrMst:String;
 begin
   if Trim(edServerAndDB.Text)='' then begin
     btSetupClick(nil);
@@ -473,34 +456,9 @@ begin
     try
       FDPhysFBDriverLink1 :=TFDPhysFBDriverLink.Create(ParentObj);
       try
-        FDPhysFBDriverLink1.VendorLib := FDCP.LibraryName;
-        FDPhysFBDriverLink1.Release;
-
         FDConnection1:=TFDConnection.Create(ParentObj);
         try
-          FDConnection1.LoginPrompt := False;
-          FDConnection1.DriverName := 'FB';
-          FDConnection1.Params.Clear;
-          FDConnection1.Params.Add('DriverID=FB');
-
-          if FDCP.GetFullServerName <>'' then begin
-            //this must be like: 'Server=127.0.0.1/3050:crypt'
-            FDConnection1.Params.Add('Server='+FDCP.GetFullServerName);
-            FDConnection1.Params.Add('Protocol=TCPIP');
-          end;
-          FDConnection1.Params.Add('Database='+FDCP.DBFileName);
-          FDConnection1.Params.Add('User_Name='+FDCP.UserName);
-          FDConnection1.Params.Add('Password='+FDCP.Password);
-          FDConnection1.Params.Add('RoleName='+FDCP.RoleName);
-          FDConnection1.Params.Add('CharacterSet='+FDCP.Charset);
-          FDConnection1.Params.Add('SQLDialect='+FDCP.Charset);
-          FDConnection1.Params.Add('ExtendedMetadata=False');
-          FDConnection1.UpdateOptions.LockWait := False;
-          FDConnection1.ResourceOptions.AutoConnect:=true;
-          FDConnection1.ResourceOptions.AutoReconnect:=true;
-
-          FDConnection1.BeforeConnect:=FDConnection1BeforeConnect;
-
+          setupConnection(FDPhysFBDriverLink1, FDConnection1);
 
           FDTransaction1 := TFDTransaction.Create(ParentObj);
           try
@@ -587,31 +545,7 @@ begin
 
   btApplyKeyClick(nil);
 
-  FDPhysFBDriverLink1.VendorLib := FDCP.LibraryName;
-  FDPhysFBDriverLink1.Release;
-  FDConnection1.LoginPrompt := False;
-  FDConnection1.DriverName := 'FB';
-  FDConnection1.Params.Clear;
-  FDConnection1.Params.Add('DriverID=FB');
-
-  if FDCP.GetFullServerName <>'' then begin
-    //this must be like: 'Server=127.0.0.1/3050:crypt'
-    FDConnection1.Params.Add('Server='+FDCP.GetFullServerName);
-    FDConnection1.Params.Add('Protocol=TCPIP');
-  end;
-
-  FDConnection1.Params.Add('Database='+FDCP.DBFileName);
-  FDConnection1.Params.Add('User_Name='+FDCP.UserName);
-  FDConnection1.Params.Add('Password='+FDCP.Password);
-  FDConnection1.Params.Add('RoleName='+FDCP.RoleName);
-  FDConnection1.Params.Add('CharacterSet='+FDCP.Charset);
-  FDConnection1.Params.Add('SQLDialect='+FDCP.Charset);
-  FDConnection1.Params.Add('ExtendedMetadata=False');
-  FDConnection1.UpdateOptions.LockWait := False;
-  FDConnection1.ResourceOptions.AutoConnect:=true;
-  FDConnection1.ResourceOptions.AutoReconnect:=true;
-
-  FDConnection1.BeforeConnect:=FDConnection1BeforeConnect;
+  setupConnection(FDPhysFBDriverLink1, FDConnection1);
 
   LogMessage('Try to open connection');
   FDConnection1.Open();
@@ -670,6 +604,61 @@ begin
   LogMessage('Transaction Commit');
 end;
 
+
+
+
+procedure TfmMain.setupConnection(var FDPhysFBDriverLink1 :TFDPhysFBDriverLink; var FDConnection1 :TFDConnection);
+var PathForFBRoot:String;
+    strErrMst:String;
+begin
+  PathForFBRoot := ExtractFileDir(FDCP.LibraryName);
+  SetEnvironmentVariable(PChar('FIREBIRD'), PChar(PathForFBRoot));        //to overwrite if exists in user environment....
+  //FDPhysFBDriverLink1.VendorHome := ExtractFileDir(FDCP.LibraryName);   //cannot use it - will add breaking "/bin" to path
+  //FDPhysFBDriverLink1.VendorLib  := ExtractFilename(FDCP.LibraryName);
+  FDPhysFBDriverLink1.VendorLib  := FDCP.LibraryName;
+  try
+    FDPhysFBDriverLink1.Release;
+  except
+    on E:Exception do begin
+      strErrMst := 'Error, can''t execute "FDPhysFBDriverLink1.Release;" : '+E.Message;
+      LogMessage(strErrMst);
+      MessageBox(0,
+        PWideChar(strErrMst),
+        'Crypt Error!' ,
+        MB_ICONERROR or MB_OK or MB_SETFOREGROUND or MB_TOPMOST or MB_APPLMODAL);
+    end;
+  end;
+
+  FDConnection1.LoginPrompt := False;
+  FDConnection1.DriverName := 'FB';
+  FDConnection1.Params.Clear;
+  FDConnection1.Params.Add('DriverID=FB');
+  FDConnection1.Params.Add('Database='+FDCP.DBFileName);
+  FDConnection1.Params.Add('User_Name='+FDCP.UserName);
+  FDConnection1.Params.Add('Password='+FDCP.Password);
+  FDConnection1.Params.Add('RoleName='+FDCP.RoleName);
+  FDConnection1.Params.Add('CharacterSet='+FDCP.Charset);
+  FDConnection1.Params.Add('SQLDialect='+FDCP.Charset);
+  FDConnection1.Params.Add('ExtendedMetadata=False');
+
+  if (not cbEmbeded.Checked) then begin
+    FDPhysFBDriverLink1.Embedded := False;
+    if FDCP.GetFullServerName <>'' then begin
+      //this must be like: 'Server=127.0.0.1/3050:crypt'
+      FDConnection1.Params.Add('Server='+FDCP.GetFullServerName);
+      FDConnection1.Params.Add('Protocol=TCPIP');
+    end;
+  end else begin
+    FDPhysFBDriverLink1.Embedded := True;
+    FDConnection1.Params.Values['Server']   := '';
+    FDConnection1.Params.Values['Protocol'] := 'Local';
+  end;
+  FDConnection1.UpdateOptions.LockWait := False;
+  FDConnection1.ResourceOptions.AutoConnect:=true;
+  FDConnection1.ResourceOptions.AutoReconnect:=true;
+
+  FDConnection1.BeforeConnect:=FDConnection1BeforeConnect;
+end;
 
 end.
 

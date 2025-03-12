@@ -21,7 +21,7 @@ object fmMain: TfmMain
   TextHeight = 13
   object btExecuteQuery: TButton
     Left = 24
-    Top = 407
+    Top = 431
     Width = 719
     Height = 25
     Anchors = [akLeft, akTop, akRight]
@@ -50,7 +50,7 @@ object fmMain: TfmMain
   end
   object gbUseThisKey: TGroupBox
     Left = 24
-    Top = 48
+    Top = 72
     Width = 719
     Height = 113
     Anchors = [akLeft, akTop, akRight]
@@ -128,9 +128,9 @@ object fmMain: TfmMain
   end
   object mResult: TMemo
     Left = 0
-    Top = 438
+    Top = 464
     Width = 759
-    Height = 214
+    Height = 188
     Align = alBottom
     Anchors = [akLeft, akTop, akRight, akBottom]
     ReadOnly = True
@@ -139,7 +139,7 @@ object fmMain: TfmMain
   end
   object meSelectToTest: TMemo
     Left = 24
-    Top = 310
+    Top = 334
     Width = 719
     Height = 91
     Anchors = [akLeft, akTop, akRight]
@@ -149,7 +149,7 @@ object fmMain: TfmMain
   end
   object btDisconnect: TButton
     Left = 438
-    Top = 167
+    Top = 191
     Width = 305
     Height = 25
     Anchors = [akTop, akRight]
@@ -159,7 +159,7 @@ object fmMain: TfmMain
   end
   object btConnect: TButton
     Left = 24
-    Top = 167
+    Top = 191
     Width = 304
     Height = 25
     Caption = 'Connect'
@@ -168,7 +168,7 @@ object fmMain: TfmMain
   end
   object meTransaction: TMemo
     Left = 24
-    Top = 215
+    Top = 239
     Width = 513
     Height = 89
     Anchors = [akLeft, akTop, akRight]
@@ -181,7 +181,7 @@ object fmMain: TfmMain
   end
   object btStart: TButton
     Left = 570
-    Top = 213
+    Top = 237
     Width = 137
     Height = 25
     Anchors = [akTop, akRight]
@@ -191,7 +191,7 @@ object fmMain: TfmMain
   end
   object btRollback: TButton
     Left = 543
-    Top = 244
+    Top = 268
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]
@@ -201,7 +201,7 @@ object fmMain: TfmMain
   end
   object btCommit: TButton
     Left = 570
-    Top = 275
+    Top = 299
     Width = 137
     Height = 25
     Anchors = [akTop, akRight]
@@ -211,12 +211,20 @@ object fmMain: TfmMain
   end
   object btRollbackRet: TButton
     Left = 646
-    Top = 244
+    Top = 268
     Width = 97
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Rollback Ret'
     TabOrder = 9
     OnClick = btRollbackRetClick
+  end
+  object cbEmbeded: TCheckBox
+    Left = 135
+    Top = 35
+    Width = 146
+    Height = 17
+    Caption = 'Test embeded'
+    TabOrder = 13
   end
 end

@@ -47,7 +47,7 @@ object fmLoginDialog: TfmLoginDialog
       Height = 22
       Hint = 'Connect using these settings'
       Anchors = [akTop, akRight]
-      Caption = 'Connect'
+      Caption = 'Save'
       Default = True
       Enabled = False
       ParentShowHint = False
